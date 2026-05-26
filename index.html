@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado Ultimate - C-Pro R Nível Master</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .block-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen antialiased flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-md border-b border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-rose-600 p-2.5 rounded-lg text-white font-black text-xl tracking-tighter">C-Pro R Master</div>
+                <div>
+                    <h1 class="text-lg font-bold leading-tight">Simulado Oficial ANBIMA - Nível Extremo</h1>
+                    <p class="text-xs text-rose-300 font-medium">Metodologia Exclusiva e Complexa (Atualizado CVM 175)</p>
+                </div>
+            </div>
+            <!-- Placar global -->
+            <div class="flex gap-4 text-sm bg-slate-800 px-4 py-2 rounded-xl border border-slate-600 shadow-inner">
+                <div>Progresso: <span id="answered-count" class="font-bold text-rose-400">0</span>/45</div>
+                <div class="border-l border-slate-600 pl-4">Aprovação: <span class="font-bold text-emerald-400">70%</span></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow flex flex-col lg:flex-row gap-8">
+        
+        <!-- Sidebar -->
+        <aside class="w-full lg:w-72 shrink-0 flex flex-col gap-2 relative">
+            <div class="sticky top-28">
+                <h2 class="block-title px-3 mb-3">Módulos da Prova (Pesos)</h2>
+                <div class="flex flex-col gap-2">
+                    <button onclick="switchBlock(1)" id="tab-b1" class="w-full text-left px-4 py-3 rounded-xl font-medium transition text-rose-700 bg-rose-50 border border-rose-200 flex justify-between items-center group shadow-sm">
+                        <span class="text-sm">1. Suitability & Perfil</span>
+                        <span id="badge-b1" class="text-xs bg-white text-rose-700 px-2.5 py-1 rounded-full font-bold shadow-sm">0/11</span>
+                    </button>
+                    <button onclick="switchBlock(2)" id="tab-b2" class="w-full text-left px-4 py-3 rounded-xl font-medium transition text-slate-600 hover:bg-slate-100 flex justify-between items-center group border border-transparent">
+                        <span class="text-sm">2. Produtos (Invest.)</span>
+                        <span id="badge-b2" class="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">0/16</span>
+                    </button>
+                    <button onclick="switchBlock(3)" id="tab-b3" class="w-full text-left px-4 py-3 rounded-xl font-medium transition text-slate-600 hover:bg-slate-100 flex justify-between items-center group border border-transparent">
+                        <span class="text-sm">3. Carteiras & Diversif.</span>
+                        <span id="badge-b3" class="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">0/9</span>
+                    </button>
+                    <button onclick="switchBlock(4)" id="tab-b4" class="w-full text-left px-4 py-3 rounded-xl font-medium transition text-slate-600 hover:bg-slate-100 flex justify-between items-center group border border-transparent">
+                        <span class="text-sm">4. Ética & Compliance</span>
+                        <span id="badge-b4" class="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">0/5</span>
+                    </button>
+                    <button onclick="switchBlock(5)" id="tab-b5" class="w-full text-left px-4 py-3 rounded-xl font-medium transition text-slate-600 hover:bg-slate-100 flex justify-between items-center group border border-transparent">
+                        <span class="text-sm">5. Econ & Tributação</span>
+                        <span id="badge-b5" class="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">0/4</span>
+                    </button>
+                </div>
+
+                <div class="mt-8 bg-slate-900 text-white p-5 rounded-2xl shadow-xl border border-slate-700">
+                    <h3 class="font-bold text-base mb-2">Finalizar Exame</h3>
+                    <p class="text-xs text-slate-400 mb-5 leading-relaxed">Clique apenas quando concluir a prova. O relatório detalhado com a correção será gerado imediatamente na tela.</p>
+                    <button type="button" onclick="finishQuiz()" id="finish-btn" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer text-center text-sm">
+                        Enviar Respostas
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Area das questoes -->
+        <section class="flex-grow flex flex-col gap-6 w-full">
+            <!-- Banner de Resultados -->
+            <div id="results-banner" class="hidden p-8 rounded-2xl shadow-lg border"></div>
+
+            <!-- Progresso do Bloco atual -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <span id="current-block-title" class="font-bold text-slate-800 text-lg">Bloco 1 – Suitability e perfil do cliente</span>
+                    <span id="block-progress-text" class="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1 rounded-lg">0% completo</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden shadow-inner">
+                    <div id="block-progress-bar" class="bg-rose-600 h-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Container JS injetado -->
+            <div id="questions-container" class="flex flex-col gap-6"></div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 py-8 mt-12 text-center text-sm text-slate-400">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>&copy; 2026 Preparação Alta Performance Financeira. Simulado Estratégico C-Pro R Extremo.</p>
+            <p class="text-xs mt-2 text-slate-500">Desenvolvido com técnicas de ponta para testar conhecimentos regulatórios e mercado financeiro real em alto nível.</p>
+        </div>
+    </footer>
+
+    <script>
+        const questions = [{"id": "Q1", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "Um cliente corporativo, responsável pela tesouraria de uma empresa que gerencia um programa de reconhecimento corporativo com recompensas digitais, solicita alocação de seu caixa de curtíssimo prazo em cotas subordinadas mezanino de um FIDC. Segundo a Resolução CVM 30, o distribuidor deve:", "options": {"A": "Aprovar a operação, desde que o FIDC possua classificação de risco (rating) de grau de investimento (investment grade) emitido por agência classificadora internacional.", "B": "Recomendar a alocação, pois investidores corporativos são automaticamente classificados como Profissionais, isentando o distribuidor de verificação de suitability.", "C": "Executar a ordem apenas se a empresa comprovar um patrimônio líquido superior a R$ 10 milhões, enquadrando-se como Investidor Qualificado.", "D": "Impedir a recomendação e, caso o cliente exija a execução por conta própria, obter declaração expressa de inadequação ao perfil, visto que cotas subordinadas possuem risco de liquidez e crédito incompatíveis com caixa de curto prazo."}, "correct": "D"}, {"id": "Q2", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "Um investidor pessoa física, que acompanha fervorosamente o consenso de lucro do Banco do Brasil para operações de day trade, sofre perdas sucessivas, mas se recusa a vender as ações em prejuízo, aguardando que 'voltem ao preço de compra', enquanto realiza lucros rápidos em ações que sobem 1%. Esse comportamento evidencia primariamente o viés de:", "options": {"A": "Viés de Ancoragem (Anchoring Bias).", "B": "Efeito Disposição (Disposition Effect).", "C": "Contabilidade Mental (Mental Accounting).", "D": "Viés de Representatividade (Representativeness Bias)."}, "correct": "B"}, {"id": "Q3", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "Na gestão de carteiras administradas (Resolução CVM 21), a verificação de adequação dos investments (suitability) pelo gestor discricionário difere daquela exigida do distribuidor de produtos no seguinte aspecto:", "options": {"A": "O gestor discricionário verifica a adequação das operações em relação à política de investimentos estabelecida para a carteira administrada como um todo, e não operação por operação frente ao perfil individual do cliente.", "B": "A CVM exige que o gestor discricionário reaplique o questionário API (Análise de Perfil do Investidor) a cada nova alocação que ultrapasse 10% do patrimônio líquido do cliente.", "C": "O gestor deve reportar ao COAF qualquer inadequação entre a ordem do cliente e o perfil, enquanto o distribuidor apenas bloqueia a boleta.", "D": "O gestor discricionário está isento de assinar o Termo de Adesão e Ciência de Risco, pois a responsabilidade pela suitability recai exclusivamente sobre o administrador fiduciário."}, "correct": "A"}, {"id": "Q4", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "Um cliente analisa o mercado automotivo brasileiro e decide liquidar parte de sua carteira de longo prazo para comprar um Renault Duster com desconto à vista. Ele mentalmente separa sua carteira em 'dinheiro para carros', 'dinheiro para aposentadoria' e 'dinheiro para especular', tomando riscos excessivos apenas na última 'conta'. Esse viés heurístico é a:", "options": {"A": "Contabilidade Mental.", "B": "Disponibilidade.", "C": "Ilusão de Controle.", "D": "Aversão ao Arrependimento."}, "correct": "A"}, {"id": "Q5", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "De acordo com o Código ANBIMA de Distribuição, o conceito de 'Know Your Product' (KYP) atua em conjunto com o 'Know Your Client' (KYC). Na oferta de um COE (Certificado de Operações Estruturadas) com alavancagem em índices internacionais, o distribuidor deve garantir que:", "options": {"A": "A rentabilidade passada do índice internacional seja extrapolada e apresentada como cenário-base no Documento de Informações Essenciais (DIE).", "B": "O produto seja ofertado exclusivamente para Investidores Profissionais, dado que a CVM proíbe a distribuição de COEs alavancados para o varejo.", "C": "O cliente realize um depósito de margem de garantia em D+0 equivalente a 50% do valor nocional do COE antes de assinar o termo de suitability.", "D": "O produto tenha sido previamente submetido à avaliação da área de compliance/risco da instituição para definir o público-alvo (target market) compatível antes de ser ofertado na prateleira."}, "correct": "D"}, {"id": "Q6", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "A fase de 'Monitoramento' na abordagem consultiva de suitability exige a revisão periódica. Segundo as melhores práticas, a ocorrência de qual evento abaixo torna obrigatória a atualização extraordinária do perfil do investidor?", "options": {"A": "A troca do gestor do fundo multimercado no qual o cliente possui sua maior posição alocada.", "B": "Uma queda sistêmica do Ibovespa superior a 10% em um único mês de negociação.", "C": "Uma alteração abrupta no horizonte de tempo de resgate dos investimentos devido à perda de fonte primária de renda (desemprego ou insolvência de sua empresa).", "D": "O vencimento de um título de renda fixa que represente mais de 5% do patrimônio financeiro do cliente gerido pela instituição."}, "correct": "C"}, {"id": "Q7", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "Um cliente chamado Cassian, com perfil classificado como Moderado, herda R$ 5 milhões e passa a deter um patrimônio de R$ 12 milhões. Ele solicita o reenquadramento imediato para Perfil Arrojado sob a justificativa de que 'agora pode tomar mais risco'. A conduta técnica do C-Pro R deve ser:", "options": {"A": "Negar o reenquadramento, pois heranças não podem alterar o perfil de risco original do cliente antes do prazo regulamentar de 24 meses.", "B": "Avaliar não apenas a nova capacidade financeira (que de fato aumentou), mas reaplicar o questionário para mensurar se a sua tolerância psicológica ao risco e conhecimento dos produtos complexos acompanham o novo patrimônio.", "C": "Aprovar automaticamente o reenquadramento, pois patrimônios acima de R$ 10 milhões caracterizam o cliente como Investidor Qualificado, que possui presunção legal de perfil Arrojado.", "D": "Exigir que Cassian assine uma renúncia formal de responsabilidade fiduciária antes de liberar produtos de renda variável."}, "correct": "B"}, {"id": "Q8", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "No contexto da taxonomia de riscos da ANBIMA para suitability, um fundo FIP (Fundo de Investimento em Participações) de Capital Semente (Seed Capital) apresenta concentração máxima de risco nos seguintes fatores:", "options": {"A": "Risco de Crédito (inadimplência dos debenturistas) e Risco Sistêmico.", "B": "Risco Operacional da CVM e Risco de Taxa de Juros de Curto Prazo.", "C": "Risco Cambial Direto e Risco de Contraparte na Câmara B3.", "D": "Risco de Liquidez e Risco de Mercado (especificamente pelo alto grau de incerteza no valuation de startups)."}, "correct": "D"}, {"id": "Q9", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "Um investidor ignora dados macroeconômicos que mostram recessão iminente e foca apenas nos balanços trimestrais otimistas de algumas empresas de sua carteira, para justificar a manutenção de suas posições compradas em bolsa. O viés descrito é:", "options": {"A": "Ilusão de Controle.", "B": "Viés do Status Quo.", "C": "Viés de Confirmação.", "D": "Aversão à Ambiguidade."}, "correct": "C"}, {"id": "Q10", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "A 'Capacidade de assumir riscos' e a 'Necessidade de assumir riscos' podem conflitar na fase de descoberta do suitability. Quando um cliente idoso, com alto patrimônio, necessita gerar uma taxa de retorno real de 8% ao ano para sustentar seu padrão de vida na aposentadoria, dizemos que ele possui:", "options": {"A": "Perfil exclusivamente conservador imposto por lei, sendo proibido ofertar qualquer ativo com volatilidade para clientes acima de 65 anos.", "B": "Baixa capacidade de assumir riscos (devido ao horizonte de tempo curto e fase de desacumulação), mas alta necessidade de retorno, exigindo do consultor o alinhamento das expectativas de consumo.", "C": "Baixa necessidade de retorno, pois o alto patrimônio nominal garantirá a sobrevivência, independentemente do rendimento real da carteira.", "D": "Alta capacidade de assumir riscos (devido ao alto patrimônio), permitindo alocação irrestrita em Fundos Imobiliários e Ações de Dividendos."}, "correct": "B"}, {"id": "Q11", "block": "Bloco 1 – Suitability e perfil do cliente", "text": "Um fundo aberto classificado pela ANBIMA como 'Multimercado Macro' solicita a um cliente de varejo a assinatura de um termo extra reconhecendo o risco de perda superior ao capital investido. O distribuidor pode ofertar esse fundo a um cliente de perfil 'Moderado'?", "options": {"A": "Sim, desde que o cliente assine o termo de ciência de que pode perder mais que o patrimônio, pois o questionário API tem caráter meramente informativo e não restritivo.", "B": "Sim, pois os fundos da categoria Multimercado Macro possuem limitação legal de alavancagem de até 1 vez o Patrimônio Líquido, não oferecendo risco de ruína.", "C": "Não, pois o potencial de perda do principal alavancado caracteriza altíssimo risco de mercado e exigência de chamada de margem, o que é incompatível com a definição de proteção patrimonial parcial típica do perfil moderado.", "D": "Não, pois clientes de varejo, independentemente do perfil de risco, são terminantemente proibidos pela CVM de investir em qualquer fundo que possua alavancagem."}, "correct": "C"}, {"id": "Q12", "block": "Bloco 2 – Produtos de investimento", "text": "Com a Resolução CVM 175, os fundos de investimento passaram a admitir responsabilidade limitada ou ilimitada para os cotistas. Em um fundo constituído sob o regime de Responsabilidade Limitada que apresentar patrimônio líquido negativo devido à desvalorização cambial drástica, a obrigação do cotista é:", "options": {"A": "Integral e solidária, o que exige o aporte imediato em D+1 após a chamada do Administrador, sob pena de bloqueio no BACEN Jud.", "B": "Restrita ao valor de suas cotas, não sendo exigível o aporte de capital adicional para cobrir as obrigações que superem o patrimônio do fundo.", "C": "Solidária junto ao Administrador Fiduciário, devendo aportar o correspondente ao seu percentual de cotas, respeitando o limite de R$ 1 milhão.", "D": "Limitada ao teto de 50% do capital inicialmente investido no fundo, cobrindo parcialmente a câmara de compensação."}, "correct": "B"}, {"id": "Q13", "block": "Bloco 2 – Produtos de investimento", "text": "Uma Nota Comercial (Commercial Paper) emitida por S.A. fechada, conforme a nova legislação (Lei 14.195/2021) aplicável aos títulos de dívida corporativa:", "options": {"A": "Possui prazo máximo e improrrogável de 360 dias e exige garantia real de bens imóveis averbada no registro competente.", "B": "Requer registro obrigatório e prévio na CVM em todas as hipóteses, independentemente do público alvo da oferta.", "C": "É de emissão exclusiva de companhias securitizadoras e possui isenção fiscal para pessoas físicas sob o regime da Lei 12.431/11.", "D": "É um título executivo extrajudicial, pode ser emitido de forma escritural e seu prazo de vencimento deixou de ser limitado a 360 dias, tornando-se de livre pactuação."}, "correct": "D"}, {"id": "Q14", "block": "Bloco 2 – Produtos de investimento", "text": "Os Certificados de Recebíveis do Agronegócio (CRA) e os Certificados de Recebíveis Imobiliários (CRI) emitidos com cláusula de subordinação (cotas sênior e subordinadas) possuem a seguinte característica estrutural em caso de default do lastro:", "options": {"A": "A série sênior e a subordinada absorverão o calote de forma pro-rata, mas a subordinada continuará a receber juros normalmente com recursos do FGC.", "B": "A cláusula de subordinação obriga a instituição estruturadora (banco coordenador) a recomprar os títulos inadimplidos no mercado secundário a par.", "C": "As perdas decorrentes do não pagamento dos recebíveis lastro afetarão primeiramente a série subordinada, protegendo a série sênior até o limite do valor (colchão) da subordinação.", "D": "As cotas sênior suportarão a perda inicial, pois oferecem maior rentabilidade prêmio na emissão em troca do risco absorvido."}, "correct": "C"}, {"id": "Q15", "block": "Bloco 2 – Produtos de investimento", "text": "Um cliente analisa um ETF (Exchange Traded Fund) domiciliado no Brasil que replica o índice S&P 500 (Ex: IVVB11). Sobre a tributação de ganho de capital para investidor Pessoa Física em negociações na B3, a alíquota aplicável e a responsabilidade pelo recolhimento são, respectivamente:", "options": {"A": "15% para operações normais e 20% para day trade, com retenção na fonte pelo Administrador do fundo, sendo isento se a venda mensal for inferior a R$ 20 mil.", "B": "15% em operações normais, sem recolhimento via DARF, pois a bolsa de valores (B3) executa o débito automático diretamente na conta do investidor.", "C": "22,5% a 15% conforme o prazo de permanência, com retenção exclusiva na fonte pela corretora no momento da liquidação da venda.", "D": "15% em qualquer operação (mesmo day trade) com ETFs de renda variável, sendo o recolhimento responsabilidade do investidor via DARF até o último dia útil do mês subsequente, não se aplicando a isenção mensal de R$ 20 mil."}, "correct": "D"}, {"id": "Q16", "block": "Bloco 2 – Produtos de investimento", "text": "Nos Fundos de Investimento Imobiliário (FII), a nova tributação trazida pela Lei 14.754/2023 alterou os critérios de isenção de Imposto de Renda sobre os rendimentos distribuídos para Pessoas Físicas. A condição para isenção passou a ser:", "options": {"A": "O fundo possuir no mínimo 50 cotistas e distribuir 95% do lucro semestral auferido no regime de caixa, independentemente do local de negociação das cotas.", "B": "A isenção foi mantida apenas para fundos de 'papel' (CRI e LCI), sendo os fundos de 'tijolo' tributados à alíquota de 20% nos rendimentos mensais.", "C": "O fundo possuir, no mínimo, 100 cotistas, e as cotas serem admitidas à negociação em bolsa ou balcão organizado, mantendo-se o limite de não isenção para cotistas que detenham mais de 10% das cotas.", "D": "A abolição total da isenção, passando os dividendos a serem tributados na fonte à alíquota fixa de 15% (come-cotas semestral)."}, "correct": "C"}, {"id": "Q17", "block": "Bloco 2 – Produtos de investimento", "text": "Um COE (Certificado de Operações Estruturadas) atrelado à cesta de ações possui o payoff do tipo 'Rubi'. Esse payoff, geralmente, é caracterizado por:", "options": {"A": "Converter o valor aplicado em ações da instituição emissora (banco) no vencimento, se e somente se o índice bovespa fechar em alta no dia de vencimento.", "B": "Restringir a rentabilidade do cliente a zero em todos os cenários, garantindo apenas a correção pela inflação embutida.", "C": "Entregar a alta ilimitada do ativo subjacente, alavancada em duas vezes, com garantia integral de capital protegido mesmo em cenários de crash do mercado.", "D": "Garantir cupons periódicos fixos ao longo da vida do produto, desde que o ativo subjacente não toque uma barreira de baixa (knock-out ou barreira europeia) em datas de observação específicas."}, "correct": "D"}, {"id": "Q18", "block": "Bloco 2 – Produtos de investimento", "text": "Na emissão de BDRs Não Patrocinados (Nível I), o programa é instituído:", "options": {"A": "Pela B3, em conjunto com o Banco Central, para criar liquidez artificial no mercado de derivativos de câmbio futuro.", "B": "Por uma instituição depositária no Brasil, sem a obrigação de anuência da empresa estrangeira emissora das ações subjacentes, utilizando ações adquiridas no mercado exterior.", "C": "Pelo emissor estrangeiro, que se compromete a adotar as normas contábeis do IFRS e reportar demonstrações traduzidas à CVM bimestralmente.", "D": "Pela própria empresa estrangeira, que contrata um banco de investimento no Brasil para realizar oferta primária (IPO) na B3 com prospecto registrado na CVM."}, "correct": "B"}, {"id": "Q19", "block": "Bloco 2 – Produtos de investimento", "text": "Em fundos de crédito privado, o Administrador e o Gestor monitoram constantemente as Letras Financeiras Subordinadas (Tier 2) que compõem a carteira. O principal risco idiossincrático associado a Letras Financeiras Subordinadas em comparação às Letras Financeiras Seniores do mesmo banco é:", "options": {"A": "As LFs Subordinadas têm liquidez diária D+0, exigindo do banco emissor o recolhimento de compulsório elevado junto ao BACEN.", "B": "Elas estão indexadas exclusivamente ao IPCA, ficando desprotegidas contra elevações da taxa Selic, ao contrário das seniores.", "C": "Elas possuem isenção de imposto de renda, o que atrai maior risco de fiscalização por parte da Receita Federal e possível recolhimento retroativo.", "D": "No cenário de liquidação extrajudicial ou falência do emissor, as LFs Subordinadas são pagas apenas após a quitação das LFs Seniores e demais credores quirografários, aumentando drasticamente o Risco de Recuperação (Loss Given Default)."}, "correct": "D"}, {"id": "Q20", "block": "Bloco 2 – Produtos de investimento", "text": "Um título público federal Tesouro Prefixado com Juros Semestrais (NTN-F) difere de um Tesouro IPCA+ com Juros Semestrais (NTN-B) em relação à duration modificada em função de um choque nas taxas de mercado. Mantendo as demais condições idênticas, a NTN-F apresentará:", "options": {"A": "Duration modificada muito sensível à taxa Selic nominal esperada, não conferindo proteção direta ao poder de compra em caso de choques não antecipados de inflação.", "B": "Maior imunidade de preço (menor marcação a mercado) em um cenário de forte aumento da curva de juros prefixada.", "C": "Obrigação de recolhimento de imposto de renda semestral sobre a diferença a mercado do principal (come-cotas), diferentemente da NTN-B.", "D": "Duration Macaulay igual ao prazo de vencimento do título, pois ambos não pagam fluxo de caixa intermediário real, apenas cupons virtuais."}, "correct": "A"}, {"id": "Q21", "block": "Bloco 2 – Produtos de investimento", "text": "No universo de debêntures incentivadas (Lei 12.431/11), a CVM dispensa o emissor da obrigação de contratação de um Agente Fiduciário nas seguintes condições:", "options": {"A": "A contratação do Agente Fiduciário é obrigatória em todas as emissões públicas de debêntures, atuando na defesa dos interesses dos debenturistas, não havendo dispensa regulatória em emissões de balcão organizado ou bolsa.", "B": "Quando a oferta for destinada exclusivamente a Investidores Qualificados e a emissão não ultrapassar R$ 1 bilhão.", "C": "Se o estruturador assumir solidariamente o risco de crédito do projeto de infraestrutura.", "D": "Se o emissor apresentar rating corporativo AAA em escala nacional por duas agências de risco concorrentes."}, "correct": "A"}, {"id": "Q22", "block": "Bloco 2 – Produtos de investimento", "text": "A segregação de liquidez em previdência (PGBL/VGBL). Os fundos previdenciários de cotas (FIC) e fundos masters devem seguir as diretrizes da Resolução CMN 4.994. Sobre os limites de alocação de um fundo de previdência para Investidores Qualificados, é permitido:", "options": {"A": "Obrigatoriamente manter 20% da carteira em títulos públicos indexados à inflação (NTN-Bs) para garantir a formação atuarial do benefício.", "B": "A alocação de até 100% da carteira em ativos de renda variável e em cotas de outros fundos de investimento que operem ativos de risco no exterior, respeitando as condições da Política de Investimentos.", "C": "Alavancar a carteira do fundo de previdência utilizando derivativos a descoberto (margem nula) até o limite de 2 vezes o patrimônio.", "D": "Alocar recursos em criptoativos de forma direta, até o limite de 20% do Patrimônio Líquido, dispensando o uso de ETFs."}, "correct": "B"}, {"id": "Q23", "block": "Bloco 2 – Produtos de investimento", "text": "Nos fundos de investimento regidos pela CVM 175, o papel do Custodiante tornou-se central. Caso um fundo adquira direitos creditórios não padronizados, a quem cabe a verificação do lastro destes ativos no âmbito das responsabilidades essenciais?", "options": {"A": "Obrigatoriamente a uma agência de rating registrada no Banco Central, que validará o FIDC sob a ótica de solvência diária.", "B": "Exclusivamente à Comissão de Valores Mobiliários (CVM), que fará auditoria semestral na câmara de liquidação.", "C": "Ao Administrador Fiduciário, que é o único responsável por telefonar aos sacados dos boletos para atestar a veracidade da dívida.", "D": "Ao Gestor da carteira caberá a contratação (ou realização direta) dos serviços de estruturação e verificação do lastro dos direitos creditórios, devendo manter registros comprobatórios."}, "correct": "D"}, {"id": "Q24", "block": "Bloco 2 – Produtos de investimento", "text": "Em produtos de crédito estruturado de pessoa jurídica, como um FIDC (Fundo de Investimento em Direitos Creditórios), o conceito de 'Revolving Period' (Período de Revolviência) significa:", "options": {"A": "A janela trimestral em que o fundo pode aumentar as taxas de administração caso ultrapasse seu benchmark IPCA+ spread.", "B": "A fase do fundo em que o principal recebido na amortização dos direitos creditórios é reinvestido na aquisição de novos direitos creditórios, mantendo o fundo operando de forma circular antes da fase de amortização das cotas.", "C": "O período de carência tributária em que o cotista fica isento do recolhimento de IR sobre ganho de capital na liquidação de recebíveis vencidos.", "D": "A etapa de liquidação antecipada do fundo desencadeada pelo rompimento de covenants (cláusulas de proteção) da série sênior."}, "correct": "B"}, {"id": "Q25", "block": "Bloco 2 – Produtos de investimento", "text": "As operações de Securitização (CRI/CRA) possuem a característica jurídica do 'Patrimônio Separado'. O efeito primário desta figura jurídica é:", "options": {"A": "Evitar o pagamento de Imposto de Renda pela pessoa jurídica que cedeu os recebíveis na operação originadora (True Sale).", "B": "Blindar o investidor do risco de calote do devedor original (lastro), pois o patrimônio separado passa a ter cobertura do Tesouro Nacional.", "C": "Isolar os créditos que lastreiam os CRI/CRA do patrimônio geral da companhia securitizadora emissora. Caso a securitizadora vá à falência, os recebíveis do patrimônio separado não integrarão a massa falida.", "D": "Permitir que a CVM assuma a gestão do patrimônio caso o cedente original dos recebíveis apresente atrasos superiores a 90 dias."}, "correct": "C"}, {"id": "Q26", "block": "Bloco 2 – Produtos de investimento", "text": "Na comparação entre um Fundo de Ações Indexado e um ETF (Exchange Traded Fund) referenciado no mesmo índice, um diferencial estrutural a favor do ETF na óptica da agilidade de alocação de curto prazo do cotista é:", "options": {"A": "O ETF não possui taxa de administração de nenhuma espécie, pois é gerido algoritmicamente sem intervenção humana.", "B": "O ETF é negociado no mercado secundário da bolsa de valores em tempo real ao longo do pregão, enquanto o Fundo de Ações Indexado tem as cotas valorizadas apenas no fechamento do dia (uma cota diária).", "C": "O Fundo Indexado não permite resgates antecipados, possuindo lock-up compulsório de 3 anos (CVM 175), enquanto o ETF não tem carência.", "D": "O ETF distribui dividendos mensalmente isentos para a pessoa física diretamente em sua conta-corrente na corretora."}, "correct": "B"}, {"id": "Q27", "block": "Bloco 2 – Produtos de investimento", "text": "O regime de Marcação a Mercado (MtM - Mark-to-Market) foi reforçado pelas regras da ANBIMA para títulos de renda fixa privados nas carteiras de pessoas físicas em corretoras. Quando a curva futura de juros do CDI suba acentuadamente em 2 dias úteis, um CDB prefixado de 5 anos marcado a mercado em sua conta deverá mostrar:", "options": {"A": "Uma forte queda no valor presente e, consequentemente, uma rentabilidade negativa imediata em sua posição atual da carteira.", "B": "Uma forte valorização no valor presente, refletindo a nova taxa maior requerida pelo mercado para manter o ganho de capital do emissor.", "C": "Nenhuma alteração, pois CDBs prefixados em corretoras para o varejo são obrigatoriamente marcados na curva de aquisição até a data de vencimento.", "D": "Uma estabilização no preço da tela, pois a regra da ANBIMA impede a exibição de variações nominais negativas em ativos protegidos pelo FGC."}, "correct": "A"}, {"id": "Q28", "block": "Bloco 3 – Carteiras e diversificação", "text": "Segundo a Teoria Moderna do Portfólio de Markowitz, a correlação entre os ativos de uma carteira afeta fundamentalmente o Risco do Portfólio. Se dois ativos A e B possuem variâncias de 15% e 20% respectivamente e uma covariância estritamente igual a zero (descorrelacionados), a combinação ótima de A e B resultará em uma carteira:", "options": {"A": "Que eliminará por completo o risco de mercado (risco sistemático), transformando-a na carteira livre de risco da economia (Risk-Free).", "B": "Com um desvio padrão inferior à média ponderada dos desvios padrões de A e B, comprovando o benefício intrínseco da diversificação na redução da volatilidade geral do portfólio.", "C": "Cujo risco será exatamente a média aritmética das variâncias dos dois ativos individuais.", "D": "Cujo retorno esperado cairá a zero, anulando os efeitos de prêmio por risco em virtude da ausência de movimentos correlacionados."}, "correct": "B"}, {"id": "Q29", "block": "Bloco 3 – Carteiras e diversificação", "text": "O 'Tracking Error' é uma métrica crucial na gestão de carteiras de retorno relativo. Na gestão de um fundo de ações ativo com forte mandato para geração de Alfa (Alpha de Jensen), um gestor apresentará comumente:", "options": {"A": "Um Beta rigorosamente igual a 1.0, demonstrando que o risco assumido acompanha exclusivamente o prêmio de risco do mercado de opções atreladas à carteira.", "B": "Um alto Tracking Error, refletindo os amplos desvios de alocação setorial e de stock picking que o gestor assume para tentar superar de forma expressiva o seu benchmark (ex: Ibovespa).", "C": "Um Tracking Error tendendo a zero, o que garantirá matematicamente que o fundo superará o referencial em momentos de bull market.", "D": "Um Tracking Error negativo, indicando que a carteira é mais conservadora do que a composição original do índice de referência."}, "correct": "B"}, {"id": "Q30", "block": "Bloco 3 – Carteiras e diversificação", "text": "Na elaboração da Política de Investimento de um cliente de altíssima renda, o uso da Duration Modificada é empregado na carteira de títulos públicos. Se a carteira possui uma Duration Modificada de 4,5 anos e espera-se que o Banco Central aumente a estrutura a termo da taxa de juros (curva YTM) em 100 pontos base (1%), o impacto estimado no preço da carteira de renda fixa será de:", "options": {"A": "Uma valorização aproximada de 4,5% no valor de mercado, decorrente do incremento no cupom atuarial esperado no médio prazo.", "B": "Uma desvalorização aproximada de 4,5% no valor de mercado dos títulos componentes da carteira.", "C": "Nenhum efeito no preço corrente, mas um aumento linear do fluxo de caixa distribuído aos cotistas nos próximos 4,5 anos.", "D": "Um impacto desprezível de 0,045% na variação cota a cota mensal (marcação a mercado diária amortizada)."}, "correct": "B"}, {"id": "Q31", "block": "Bloco 3 – Carteiras e diversificação", "text": "O modelo APT (Arbitrage Pricing Theory) difere do modelo tradicional CAPM (Capital Asset Pricing Model) na precificação do retorno esperado dos ativos ao assumir que:", "options": {"A": "O retorno esperado depende de múltiplos fatores de risco macroeconômicos não especificados a priori no modelo (ex: inflação, PIB, curva de juros), cada qual com seu respectivo Beta sensitivo, diferentemente do fator único de risco de mercado do CAPM.", "B": "É impossível realizar operações de short selling (venda a descoberto) sem ferir as margens de garantias depositadas em clearing houses.", "C": "A fronteira de eficiência se torna linear, dispensando as premissas de aversão ao risco inerentes a todos os investidores do mercado financeiro racional.", "D": "O retorno de um ativo depende unicamente do desvio padrão isolado da ação emitente e de sua covariância em relação ao ativo livre de risco (risk-free rate)."}, "correct": "A"}, {"id": "Q32", "block": "Bloco 3 – Carteiras e diversificação", "text": "Um fundo de investimento de 'Risk Parity' (Paridade de Risco) estrutura sua alocação de carteira de modo peculiar. O gestor deste fundo utilizará qual princípio norteador para o rebalanceamento tático e estratégico?", "options": {"A": "Igualará o pagamento de cupons semestrais de todas as letras financeiras mantidas na carteira às oscilações intradiárias da inflação explícita nos contratos DIs.", "B": "Garantirá que as debêntures emitidas por infraestrutura (CRI e debêntures 12.431) detenham exatamente o dobro do percentual alocado em ações do setor financeiro, equiparando assim a exposição de mercado à exposição fiscal do governo.", "C": "Os pesos dos ativos (Ações, Renda Fixa, Commodities) não são definidos pela projeção de retornos esperados ou valor de mercado nominal, mas sim alocados de forma inversamente proporcional à volatilidade de cada classe, para que todas contribuam de forma equivalente ao risco total do fundo.", "D": "Forçará os Betas nominais de todas as ações no índice de referência a resultarem na somatória exata da variância observada na taxa CDI de igual período anualizado."}, "correct": "C"}, {"id": "Q33", "block": "Bloco 3 – Carteiras e diversificação", "text": "Na medição de performance ajustada ao risco para ativos descorrelacionados. Um fundo de Hedge Fund multimercado detém posições ativas em derivativos globais. Um índice de avaliação altamente exigente, que penaliza excessivamente os retornos negativos em janelas móveis de tempo (Risco de Cauda Downside) na carteira, sem computar o desvio padrão de retornos positivos, é conhecido como:", "options": {"A": "Índice de Sortino.", "B": "Coeficiente de Correlação de Pearson.", "C": "Índice de Treynor.", "D": "Duration Convexidade Modificada (Macaulay-adjusted)."}, "correct": "A"}, {"id": "Q34", "block": "Bloco 3 – Carteiras e diversificação", "text": "Um cliente decide comprar a integralidade das ações emitidas pela empresa de tecnologia de seu irmão em uma operação de Private Equity. O cliente indaga como diluir o risco específico dessa única grande posição (Risco Não-Sistemático) sem precisar vender as ações, mantendo o controle acionário. A resposta sob a ótica moderna de portfólio seria:", "options": {"A": "Transferir custódia acionária das contas pessoa física do cliente para um veículo exclusivo de fundos offshore nas ilhas Virgens compensa os eventuais calotes via isenção global na curva eficiente estática.", "B": "A compra de opções de compra (Calls) atreladas diretamente ao Índice Ibovespa no mercado futuro anula obrigatoriamente a concentração exposta da empresa no seu mercado de atuação local.", "C": "Subordinar 50% dos recebíveis do caixa futuro da empresa em notas promissórias e vendê-las ao mercado bancário, transformando risco de equidade (equity) em risco estritamente sistêmico soberano.", "D": "A única forma matematicamente eficaz de neutralizar risco idiossincrático (não-sistemático) é através da diversificação pela inclusão de ativos imperfeitamente correlacionados ao patrimônio da empresa no portfólio total do investidor. Sem vender nada ou realizar complexos hedges com derivativos correlacionados setorialmente, o risco inerente do negócio continuará prevalente."}, "correct": "D"}, {"id": "Q35", "block": "Bloco 3 – Carteiras e diversificação", "text": "A utilização de estratégias de Imunização de Carteira de Títulos Prefixados exige que o gestor se preocupe com o erro de imunização decorrente de variações não paralelas da curva de juros. Qual variável secundária das obrigações, além da Duration Modificada, atenua as perdas nos cenários de grandes choques direcionais abruptos da taxa interna de retorno?", "options": {"A": "A TIR (Taxa Interna de Retorno) implícita da emissão de prospecto primário que cristaliza as premissas de inflação implícita apriorística (Breakeven inflation).", "B": "A Convexidade (Convexity), pois reflete a curvatura não linear da relação preço-taxa, mostrando que a queda do preço em aumentos da taxa é atenuada, enquanto a valorização nas quedas da taxa de juros é potencializada.", "C": "O Cupom Semestral Acumulado (Accrued Interest), que anula os vetores negativos da variação monetária nos fluxos de despesas antecipadas de provisões.", "D": "O Prêmio de Risco Padrão do Credit Default Swap (CDS) de liquidez estrutural para dívidas corporativas classificadas abaixo da linha grau de investimento especulativo BB."}, "correct": "B"}, {"id": "Q36", "block": "Bloco 3 – Carteiras e diversificação", "text": "Em um processo de rebalanceamento dinâmico tático (Tactical Asset Allocation - TAA), um gestor ativamente desvia sua posição comprada em Renda Variável local, que estava como Alocação Estratégica original em 30%, passando-a subitamente para 15% na iminência de um conflito geopolítico regional, e estaciona o restante em reservas de curto prazo (CDI). Tal manobra é considerada viável em carteiras institucionais apenas se:", "options": {"A": "A política de investimentos prever e autorizar expressamente graus de liberdade tática amplos e limites flexíveis de alocação, para que a subponderação agressiva (Underweight) de classes não constitua enquadramento fiduciário irregular perante as regras estabelecidas pelo benchmark mandatário e a CVM.", "B": "Os passivos da instituição garantirem taxa garantida (TMA atuarial) prefixada idêntica no curto prazo inferior a doze meses contábeis fiscais em balancete contínuo.", "C": "O gestor não realizar uso de operações alavancadas via aluguel (BTC) contra posições ilíquidas operadas majoritariamente por robôs de negociações intraday em dark pools da B3.", "D": "O comitê alocador do fundo de ações local possuir obrigações de manter margens compulsórias (Hedge Accounting) no BACEN equivalentes a 120% do drawdown histórico projetado na última década globalizada."}, "correct": "A"}, {"id": "Q37", "block": "Bloco 4 – Ética e compliance", "text": "A lei brasileira de combate à lavagem de dinheiro (Lei 9.613/98 e atualizações) elenca infrações subjacentes. As instituições e distribuidores sujeitos ao mecanismo do COAF são obrigados a manter os cadastros atualizados dos clientes, bem como conservar os registros das transações em moeda nacional ou estrangeira, títulos e valores mobiliários, por um prazo mínimo de:", "options": {"A": "5 (cinco) anos após o encerramento do relacionamento com o cliente ou da conclusão das transações.", "B": "20 (vinte) anos ou prazo indeterminado se o cliente for classificado como PEP (Pessoa Exposta Politicamente) com mandatos eletivos em vigência ou que encerrou seus cargos em até 5 exercícios fiscais passados.", "C": "5 (cinco) anos a partir da emissão do primeiro Documento de Origem Fiduciária do fundo do qual o cliente originou os lucros operacionais não tributados pelo Carne-Leão.", "D": "10 (dez) anos contados ininterruptamente apenas se a operação inicial for superior ao limiar prudencial estipulado de R$ 50 mil em depósitos à vista fracionados (smurfing)."}, "correct": "A"}, {"id": "Q38", "block": "Bloco 4 – Ética e compliance", "text": "No contexto das barreiras de informação (Chinese Wall) estipuladas pela regulamentação da CVM e autorregulação ANBIMA, qual das seguintes condutas caracteriza violação frontal deste princípio por parte de uma instituição financeira de múltiplo escopo?", "options": {"A": "Os analistas independentes de Research publicarem relatórios macroeconômicos acessíveis publicamente no site institucional sem aviso prévio à diretoria comercial da tesouraria do mesmo grupo.", "B": "Os funcionários da Asset e do Investment Bank utilizarem os mesmos refeitórios sociais do banco, embora com crachás de cores restritivas que monitoram acessos físicos aos elevadores segregados na matriz do centro financeiro metropolitano de São Paulo.", "C": "Os membros de auditoria interna da instituição terem acesso total (Full Access System Privileges) às transações efetuadas de ambas as áreas visando apuração estatística para elaboração do reporte anual do balanço.", "D": "O diretor executivo responsável pela área de Gestão de Recursos de Terceiros (Asset Management) participar ativamente e deliberar no Comitê de Crédito da área de Corporate Banking, tomando decisões sobre empréstimos estruturados às empresas cujas ações a Asset negocia diariamente em bolsa."}, "correct": "D"}, {"id": "Q39", "block": "Bloco 4 – Ética e compliance", "text": "A prática de manipulação de mercado conhecida como Spoofing, proibida nas instruções CVM relativas às normas e práticas de negociações nos mercados de valores mobiliários, consiste especificamente em:", "options": {"A": "Girar a carteira dos clientes administrados demasiadas vezes para extrair rebotes e comissionamento variável retroativo das mesas operadoras, corroendo a taxa de performance sob os acordos de Watermark firmados antecipadamente em juízo.", "B": "Comprar papéis antecipadamente em conta pessoal após acessar de modo não intencional as minutas reservadas da equipe técnica contábil que apurava lucro bruto acima das diretrizes projetadas do mercado nas empresas listadas.", "C": "Inserir ofertas volumosas e artificiais no livro de negociação da bolsa de valores (order book), sem a real intenção de executá-las, com o intuito de criar uma ilusão de pressão compradora ou vendedora e induzir o comportamento do mercado ou de algoritmos rivais de alta frequência (HFT), para depois cancelar as ofertas frações de segundo antes da execução do trade reverso proveitoso.", "D": "Propagar boatos ou informações inverídicas sobre um ativo em fóruns na internet ou mídias especializadas (Pump and Dump) aguardando o ativo artificialmente inflado cair abruptamente em poucas sessões de alta volatilidade."}, "correct": "C"}, {"id": "Q40", "block": "Bloco 4 – Ética e compliance", "text": "O distribuidor submetido aos Códigos da ANBIMA, para prevenir e atenuar a exposição de Conflitos de Interesse nas recomendações e alocações de ativos estruturados, deve adotar a transparência como princípio máximo. Em um cenário onde a comissão originada da venda do Fundo Multimercado de gestão própria da instituição remunere o assessor no quíntuplo (5x) do Fundo Multimercado de terceiro equivalente nas métricas de risco e retorno da vitrine aberta da plataforma, o assessor:", "options": {"A": "Deve orientar sua recomendação de investimento precipuamente pelos interesses do cliente final (Suitability e mérito técnico da alocação do produto), não utilizando as divergências ou pressões em políticas de incentivos sistêmicos e rebotes remuneratórios cruzados das áreas comerciais para induzir a tomada de decisões de alocações prejudiciais financeiramente ao contratante fiduciário.", "B": "Estará bloqueado sistemicamente no núcleo parametrizador de ordens do banco do cliente por configurar Crime Contra o Sistema Financeiro Nacional o repasse de verbas ativas superiores ao percentual global da taxa Selic Over estipulado anualmente pelo comitê interbancário financeiro de supervisões bancárias na CVM.", "C": "Tem autonomia ética e legal baseada no Código de Conduta Profissional para indicar exclusivamente o Fundo do próprio banco emissor visando defender as cotas da holding perante ataques especulativos globais sistematicamente orquestrados pelo mercado paralelo do swap atacadista (Self-Dealing permitido).", "D": "Só necessitará informar de forma sucinta por via oral a diferença comissionável, para logo após isentar-se com um termo preenchido de próprio punho assumindo o cliente as intempéries mercadológicas de performance futura independentemente da adequação final originária das lâminas do produto escolhido sob coação tática."}, "correct": "A"}, {"id": "Q41", "block": "Bloco 4 – Ética e compliance", "text": "Sobre crimes de Mercado de Capitais. O 'Insider Trading' primário acarreta pesadas sanções na esfera administrativa (CVM) e penal. Um conselheiro da companhia, detentor de Informação Relevante não divulgada ao mercado (material non-public information), repassa tal informação por amizade a um parceiro de clube (tipper), e este opera em bolsa auferindo vultosos lucros financeiros em poucas horas na conta jurídica do parceiro (tippee). O crime ocorreu:", "options": {"A": "Somente o conselheiro da companhia sofrerá inquérito sancionador (PAS), enquanto o amigo goza da presunção plena de boa-fé pois não detinha qualquer vínculo empregatício formal averbado nas diretorias de Relações com Investidores (RI) regidos pelos atos societários publicados nos Diários Oficiais estaduais contíguos.", "B": "Para ambos. O conselheiro responderá ativamente pela quebra do dever de lealdade e repasse ilegal da informação (tipping), e o amigo parceiro também estará sujeito à penalização administrativa e criminal secundária por ter utilizado conscientemente tal vantagem da informação material de caráter fechado para lucros no mercado secundário desequilibrado.", "C": "Somente o amigo (tippee) será autuado penalmente, uma vez que o executivo primário (tipper) não realizou operações ativas na B3 no seu próprio CPF e, sendo assim, a CVM é inelegível legalmente para congelamento de proventos primários de remuneração societária na S.A. listada de origem nacional fechada.", "D": "Não houve tipificação criminal pois operações especulativas alavancadas feitas fora do expediente comercial em home brokers offshore diluem as travas regulatórias da Comissão de Valores Mobiliários (CVM) que se aplicam restritivamente às agências bancárias em dias úteis oficiais de calendários do Banco Central (BACEN)."}, "correct": "B"}, {"id": "Q42", "block": "Bloco 5 – Economia e tributação", "text": "A Lei 14.754/2023 alterou radicalmente a tributação das carteiras dos Fundos Fechados de investimento da altíssima renda no Brasil. O benefício do longo diferimento tributário (apenas incidência de IR no evento do resgate/vencimento do fundo) foi eliminado com a aplicação do 'Come-Cotas'. Estão submetidos a essa nova incidência semestral obrigatória de IR:", "options": {"A": "Fundos de Ações classificados sob rito aberto ou FIPs (Participações) cujos enquadramentos regulatórios desvirtuem suas políticas mínimas alocativas impostas em lei, e essencialmente os Fundos Multimercados Exclusivos Fechados, com tributação regida nos meses de maio e novembro de todo exercício fiscal a alíquota fixa básica de mercado padronizada sobre o ganho nominal de cotas em suas constituições restritas de portfólio.", "B": "Apenas Fundos Internacionais classificados em paraísos fiscais de baixíssima conformidade atuarial com alíquota progressiva variando entre 15% e 40% incidentes de forma automática semestral, englobando também a parcela isenta atrelada em variação de moeda original fiduciária de moedas criptográficas atípicas das jurisdições ocidentais monitoradas pelo banco interamericano monetário CVM.", "C": "Todos os fundos indexados listados globalmente nos EUA ou que operem ADRs de alta capilaridade de mercado e Fundos Mútuos de Privatização lastreados na estabilidade de FGTs e em provisões de rendas futuras atreladas na inflação europeia retroativa indexada na caderneta de poupança com multiplicador da cota básica Selic na banda superior de contingência do comitê.", "D": "As emissões de Notas Comerciais (commercial papers) e os lucros recebidos na quitação fiduciária primária dos adiantamentos de recebíveis de câmbio cambiais (ACC) liquidadas precocemente em conta corrente de domiciliados no Brasil sob o guarda-chuva jurídico originário dos antigos FIAGROs corporativos e as cotas não padronizadas exclusivas isentas dos FIIs de tijolos urbanos consolidados."}, "correct": "A"}, {"id": "Q43", "block": "Bloco 5 – Economia e tributação", "text": "A inflação de longo prazo sofre repasse do Risco Cambial (Pass-Through). Em uma pequena economia emergente, uma súbita valorização da moeda estrangeira (Dólar mais caro frente ao Real) num período onde o hiato do produto interno esteja positivo e a capacidade industrial ociosa quase nula acarretará o seguinte desdobramento de pressões teóricas macroeconômicas locais ativas:", "options": {"A": "Uma valorização externa forte elimina o diferencial da taxa de juro e expande os empréstimos corporativos nos bancos locais, fomentando a oferta de capital internacional alavancado via linhas diretas isentas de swap gerando assim inflação estritamente negativa num regime de câmbio fixo flutuante de base indexada na Selic overnight acumulada historicamente nas reuniões trimestrais periódicas do CVM.", "B": "Não ocorre impacto prático, haja vista as reservas cambiais brasileiras geridas atuarem passivamente com juros prefixados amortizando todo repasse do balanço comercial a importadores em hedge natural que protege plenamente todo componente inflacionário da curva curta até dezoito meses de emissões contratuais dos contratos de balcão B3 na linha de swaps referenciados do Banco Mundial e congêneres fiduciários.", "C": "A desvalorização real provocará recrudescimento súbito da balança comercial via importações barateadas artificialmente pelo excesso da liquidez na rede atacadista das clearing houses cambiais e isenções tributárias alfandegárias de matérias-primas globais reduzindo estruturalmente a projeção do IGP-M dos atacadistas produtores indexados nos ciclos de expansão global ininterruptas.", "D": "O encarecimento das importações da cadeia produtiva gerará pressões de custos para indústrias e a ausência de ociosidade permitirá rápido repasse aos preços finais ao consumidor (Pass-Through alto), obrigando a autoridade do banco central intervir e ancorar juros da política monetária restritiva com vistas à estabilização de longo prazo da taxa de núcleo contínuo referencial (IPCA longo do boletim foco projetado)."}, "correct": "D"}, {"id": "Q44", "block": "Bloco 5 – Economia e tributação", "text": "O regime das compensações fiscais é central em alocações para investidores complexos (C-Pro R). Sobre as restrições impostas aos abatimentos e compensações em fundos de investimento regidos por tabelas regressivas ou regimes de day-trade na B3 pessoa física ativas. Assinale a regra de conformidade tributária e procedimental em mercado de capitais no cruzamento dessas rendas perante apurações corretoras locais e Receita Federal atuantes:", "options": {"A": "Perdas em Fiagros negociados em mercados secundários organizados balcão anulam com exatidão matemática eventuais proventos lucráveis gerados das emissões bancárias LCI isentas pois mantidas alíquotas iguais unificadas no carne leão permitindo migração fiscal do teto retroativo atrelado aos recolhimentos excedentes dos come cotas ocorridos antecipadamente via caixa gerador consolidado no final do mês corrido imposto da renda final da carteira integral.", "B": "Prejuízos oriundos das liquidações de CDBs de banco liquidados extrajudicialmente com a trava nominal de garantia via cobertura FGC ativada em limites teto de saldo de 250 mil compensam automaticamente quaisquer recolhimentos vindouros de DARFs atreladas aos ganhos originados na oscilação dos rendimentos trimestrais creditados do repasse em fundos listados indexados globais BDR ou ETF indexados das bolsas internacionais da Europa ocidental e de Singapura.", "C": "Todas as perdas obtidas via alienação fiduciária em opções call e puts (B3 derivativos em pregão) podem ser abatidas livremente do saldo em caixa travado em previdência PGBL desde que informadas cumulativamente no fechamento da declaração pré-preenchida até doze por cento limite retido legal da dedução máxima salarial tributável anual fiscal referendada pelo agente custodiante centralizado da corretora na fonte.", "D": "Não é autorizada pela legislação do Imposto de Renda a compensação cruzada entre eventuais prejuízos assumidos na venda antecipada de cotas de um fundo de investimento de Renda Fixa e lucros tributáveis líquidos e realizados auferidos mediante as negociações mensais independentes ativas diretas geradas em bolsas de valores envolvendo contratos em mercados de ações e derivativos do investidor consolidado em conta de compensações."}, "correct": "D"}, {"id": "Q45", "block": "Bloco 5 – Economia e tributação", "text": "Ao atuar frente às Políticas Fiscais e Monetárias do Estado, o governo expande gastos e endividamento interno sem cobertura primária equivalente das receitas de arrecadação do estado. Consequentemente, qual das teorias de mercado e de curva de juros reflete a absorção sistemática de liquidez dos bancos em busca de refinanciamento desta dívida, pressionando em alta o custo de capital às empresas e aos clientes civis?", "options": {"A": "Prêmio de Liquidez Fiduciário Inverso. Onde as empresas do mercado reagem captando de modo artificial a Selic nos balanços maquiados com notas promissórias submetidas diretamente com deságio ao caixa atacadista na proporção indireta da taxa interna imposta nos balancetes do COPOM retroativo ao comitê formador contábil sistêmico de curto prazo.", "B": "Efeito Deslocamento (Crowding-out). O alto volume de emissões de novos títulos públicos pelo Tesouro enxuga a disponibilidade geral de fundos de crédito privado nos bancos e, para financiar tal déficit crônico da nação na curva livre, o custo de capital sobe exaustivamente oprimindo as linhas de expansões para o setor privado industrial ou hipotecário.", "C": "Quantitative Easing Contracionista Primário Direto. Na qual a atuação do Estado em vender grandes massas nominais no mercado à vista inunda drasticamente de notas em moeda fracionária as linhas rotativas estimulando investimentos robustos do mercado corporativo e achatando prêmios do risco setorial atuarial global imobiliário de juros do cupom de swap.", "D": "Efeito da Armadilha de Liquidez Estendida (Liquidity Trap). Condição macroeconômica base em que as altas recorrentes nos juros fixos provocam inércia estrutural, não havendo captação monetária adicional nos leilões compromissados da tesouraria do Banco Central com os bancos dealers, achatando curvas fixas até zero percentual."}, "correct": "B"}];
+        const userAnswers = {};
+        let currentBlock = 1;
+        let isSubmitted = false;
+
+        const blockRanges = {
+            1: { start: 1, end: 11, title: "1. Suitability e Perfil do Cliente (25%)" },
+            2: { start: 12, end: 27, title: "2. Produtos de Investimento (35%)" },
+            3: { start: 28, end: 36, title: "3. Carteiras e Diversificação (20%)" },
+            4: { start: 37, end: 41, title: "4. Ética e Compliance (10%)" },
+            5: { start: 42, end: 45, title: "5. Economia e Tributação (10%)" }
+        };
+
+        function switchBlock(blockNum) {
+            currentBlock = blockNum;
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`tab-b${i}`);
+                if (i === blockNum) {
+                    btn.className = "w-full text-left px-4 py-3 rounded-xl font-medium transition text-rose-700 bg-rose-50 border border-rose-200 flex justify-between items-center group shadow-sm";
+                } else {
+                    btn.className = "w-full text-left px-4 py-3 rounded-xl font-medium transition text-slate-600 hover:bg-slate-100 flex justify-between items-center group border border-transparent";
+                }
+            }
+            renderQuestions();
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderQuestions() {
+            try {
+                const container = document.getElementById("questions-container");
+                container.innerHTML = "";
+                const range = blockRanges[currentBlock];
+                
+                const filtered = questions.filter(q => {
+                    const qIdNum = parseInt(q.id.replace('Q', ''));
+                    return qIdNum >= range.start && qIdNum <= range.end;
+                });
+                
+                filtered.forEach((q) => {
+                    const card = document.createElement("div");
+                    card.id = `card-${q.id}`;
+                    card.className = "bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-5 transition-all";
+                    
+                    const header = document.createElement("div");
+                    header.className = "flex items-start gap-4";
+                    header.innerHTML = `
+                        <span class="bg-rose-100 text-rose-800 text-sm font-black px-3 py-1.5 rounded-lg mt-0.5 shadow-sm min-w-10 text-center">${q.id}</span>
+                        <h3 class="text-base font-semibold leading-relaxed text-slate-800">${q.text}</h3>
+                    `;
+                    card.appendChild(header);
+                    
+                    const optionsList = document.createElement("div");
+                    optionsList.className = "flex flex-col gap-3 mt-2";
+                    
+                    ['A', 'B', 'C', 'D'].forEach((letter) => {
+                        const isChecked = userAnswers[q.id] === letter;
+                        const optionBtn = document.createElement("button");
+                        optionBtn.type = "button";
+                        optionBtn.disabled = isSubmitted;
+                        optionBtn.onclick = () => selectOption(q.id, letter);
+                        optionBtn.id = `opt-${q.id}-${letter}`;
+                        
+                        let btnClass = "w-full text-left px-5 py-4 rounded-xl border text-sm font-medium transition-all flex items-start gap-4 cursor-pointer ";
+                        let markerClass = "w-7 h-7 shrink-0 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ";
+                        
+                        if (isSubmitted) {
+                            btnClass += "cursor-not-allowed ";
+                            if (letter === q.correct) {
+                                btnClass += "bg-emerald-50 border-emerald-400 text-emerald-900 ring-1 ring-emerald-400";
+                                markerClass += "bg-emerald-500 text-white";
+                            } else if (isChecked && letter !== q.correct) {
+                                btnClass += "bg-red-50 border-red-300 text-red-900";
+                                markerClass += "bg-red-500 text-white";
+                            } else {
+                                btnClass += "bg-slate-50 border-slate-200 text-slate-400 opacity-50";
+                                markerClass += "bg-slate-200 text-slate-400 shadow-none";
+                            }
+                        } else {
+                            if (isChecked) {
+                                btnClass += "bg-rose-50 border-rose-500 text-rose-900 shadow-md ring-1 ring-rose-500 scale-[1.01]";
+                                markerClass += "bg-rose-600 text-white";
+                            } else {
+                                btnClass += "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm";
+                                markerClass += "bg-slate-100 text-slate-500";
+                            }
+                        }
+                        
+                        optionBtn.className = btnClass;
+                        optionBtn.innerHTML = `
+                            <span class="${markerClass}">${letter}</span>
+                            <span class="pt-1 leading-snug">${q.options[letter]}</span>
+                        `;
+                        optionsList.appendChild(optionBtn);
+                    });
+                    
+                    card.appendChild(optionsList);
+                    
+                    if (isSubmitted) {
+                        const feedback = document.createElement("div");
+                        feedback.className = "mt-4 p-4 rounded-xl text-sm flex items-start gap-3 font-semibold shadow-inner ";
+                        if (userAnswers[q.id] === q.correct) {
+                            feedback.className += "bg-emerald-100/50 text-emerald-800 border border-emerald-200";
+                            feedback.innerHTML = `<span class="text-xl">✅</span> <div>Você acertou! Muito bem, análise cirúrgica da questão.</div>`;
+                        } else {
+                            feedback.className += "bg-red-100/50 text-red-800 border border-red-200";
+                            feedback.innerHTML = `<span class="text-xl">❌</span> <div>Incorreto. A resposta técnica e regulatória exigida era a alternativa <strong class="text-red-900 text-lg">${q.correct}</strong>.</div>`;
+                        }
+                        card.appendChild(feedback);
+                    }
+                    
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Erro no renderQuestions:", err);
+            }
+        }
+
+        function selectOption(questionId, letter) {
+            if (isSubmitted) return;
+            userAnswers[questionId] = letter;
+            renderQuestions();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            try {
+                let overallCount = 0;
+                for (let b = 1; b <= 5; b++) {
+                    const range = blockRanges[b];
+                    let blockAnswered = 0;
+                    for (let i = range.start; i <= range.end; i++) {
+                        if (userAnswers[`Q${i}`]) {
+                            blockAnswered++;
+                            overallCount++;
+                        }
+                    }
+                    
+                    const badge = document.getElementById(`badge-b${b}`);
+                    badge.innerText = `${blockAnswered}/${range.end - range.start + 1}`;
+                    
+                    if (blockAnswered === (range.end - range.start + 1)) {
+                        badge.className = "text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold shadow-sm";
+                    }
+                    
+                    if (b === currentBlock) {
+                        const totalBlockQs = range.end - range.start + 1;
+                        const pct = Math.round((blockAnswered / totalBlockQs) * 100);
+                        document.getElementById("block-progress-text").innerText = `${pct}% Concluído`;
+                        document.getElementById("block-progress-bar").style.width = `${pct}%`;
+                        document.getElementById("current-block-title").innerText = range.title;
+                    }
+                }
+                document.getElementById("answered-count").innerText = overallCount;
+            } catch (err) {
+                console.error("Erro no updateProgress:", err);
+            }
+        }
+
+        function finishQuiz() {
+            try {
+                if (isSubmitted) return;
+                
+                const answeredTotal = Object.keys(userAnswers).length;
+                if (answeredTotal < 45) {
+                    if (!confirm(`Atenção: Você respondeu apenas ${answeredTotal} de 45 questões. O exame exige precisão total. Deseja mesmo finalizar e gerar o relatório?`)) {
+                        return;
+                    }
+                }
+                
+                isSubmitted = true;
+                const btn = document.getElementById("finish-btn");
+                btn.disabled = true;
+                btn.classList.add("opacity-50", "cursor-not-allowed");
+                btn.innerText = "Avaliação Encerrada";
+                
+                let totalCorrect = 0;
+                const blockCorrect = { 1:0, 2:0, 3:0, 4:0, 5:0 };
+                
+                questions.forEach((q) => {
+                    const qIdNum = parseInt(q.id.replace('Q', ''));
+                    let bId = 1;
+                    for (let b = 1; b <= 5; b++) {
+                        if (qIdNum >= blockRanges[b].start && qIdNum <= blockRanges[b].end) {
+                            bId = b;
+                            break;
+                        }
+                    }
+                    if (userAnswers[q.id] === q.correct) {
+                        totalCorrect++;
+                        blockCorrect[bId]++;
+                    }
+                });
+                
+                const globalScorePct = Math.round((totalCorrect / 45) * 100);
+                const isApproved = globalScorePct >= 70;
+                
+                const banner = document.getElementById("results-banner");
+                banner.classList.remove("hidden");
+                
+                if (isApproved) {
+                    banner.className = "p-8 rounded-2xl shadow-2xl border bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 text-emerald-950 flex flex-col gap-6";
+                    banner.innerHTML = `
+                        <div class="flex items-center gap-5">
+                            <div class="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-black text-3xl shadow-lg rotate-3">✓</div>
+                            <div>
+                                <h3 class="text-3xl font-black text-emerald-900 tracking-tight">APROVADO(A)! NÍVEL MASTER ATINGIDO</h3>
+                                <p class="text-emerald-700 font-medium mt-1">Sua proficiência e conhecimento avançado garantiram a superação no teste definitivo da C-Pro R.</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    banner.className = "p-8 rounded-2xl shadow-2xl border bg-gradient-to-br from-red-50 to-rose-50 border-red-200 text-red-950 flex flex-col gap-6";
+                    banner.innerHTML = `
+                        <div class="flex items-center gap-5">
+                            <div class="w-16 h-16 bg-red-600 text-white rounded-2xl flex items-center justify-center font-black text-3xl shadow-lg -rotate-3">!</div>
+                            <div>
+                                <h3 class="text-3xl font-black text-red-900 tracking-tight">ÍNDICE INSUFICIENTE PARA O NÍVEL MASTER</h3>
+                                <p class="text-red-700 font-medium mt-1">Este teste exige proficiência avançada. Revise o diagnóstico com cuidado, estude as lacunas teóricas e retorne mais forte.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                let breakdownHtml = `
+                    <div class="mt-2 border-t-2 border-emerald-200/50 pt-6">
+                        <h4 class="text-sm font-black uppercase tracking-widest text-emerald-800/60 mb-5">Relatório Diagnóstico por Módulo</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                `;
+                
+                for (let b = 1; b <= 5; b++) {
+                    const totalQs = blockRanges[b].end - blockRanges[b].start + 1;
+                    const correctNum = blockCorrect[b];
+                    const pct = Math.round((correctNum / totalQs) * 100);
+                    
+                    const colorClass = pct >= 70 ? 'text-emerald-600' : 'text-red-600';
+                    const barColor = pct >= 70 ? 'bg-emerald-500' : 'bg-red-500';
+                    
+                    breakdownHtml += `
+                        <div class="bg-white p-5 rounded-xl border border-slate-100 flex flex-col gap-2 shadow-sm">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider h-8 line-clamp-2 leading-tight">${blockRanges[b].title}</span>
+                            <div class="flex justify-between items-end mt-2">
+                                <span class="text-3xl font-black text-slate-800">${correctNum}<span class="text-lg text-slate-400 font-medium">/${totalQs}</span></span>
+                                <span class="text-lg font-black ${colorClass}">${pct}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2">
+                                <div class="${barColor} h-full rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Card de Score Global
+                const globalColor = isApproved ? 'text-emerald-400' : 'text-rose-400';
+                breakdownHtml += `
+                        <div class="bg-slate-900 text-white p-6 rounded-xl flex flex-col justify-between shadow-xl md:col-span-2 lg:col-span-1 transform transition hover:scale-105">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Score Global Final</span>
+                            <div class="flex flex-col gap-1 mt-3">
+                                <span class="text-4xl font-black text-rose-400">${totalCorrect}<span class="text-xl text-slate-500 font-medium">/45 res. corretas</span></span>
+                                <span class="text-3xl font-black ${globalColor} mt-1">${globalScorePct}% <span class="text-sm font-medium text-slate-300 ml-1">de aproveitamento</span></span>
+                            </div>
+                        </div>
+                    </div></div>`;
+                
+                banner.innerHTML += breakdownHtml;
+                
+                renderQuestions();
+                updateProgress();
+                
+                banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (err) {
+                console.error("Erro no finishQuiz:", err);
+                alert("Ocorreu um erro ao processar. Verifique o console.");
+            }
+        }
+
+        window.onload = () => {
+            renderQuestions();
+            updateProgress();
+        };
+    </script>
+</body>
+</html>
